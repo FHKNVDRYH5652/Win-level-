@@ -296,6 +296,14 @@
             border-radius: 10px;
             cursor: pointer;
             margin: 20px;
+            /* Disabled styles for visual clarity when disabled */
+            transition: opacity 0.3s;
+        }
+
+        #generatePrediction:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .prediction-result {
@@ -642,6 +650,7 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const generateButton = document.getElementById('generatePrediction');
     </script>
 
     <script>
@@ -766,6 +775,9 @@
             document.getElementById('periodNumber').value = '';
             document.getElementById('predictionResult').style.display = 'none';
             
+            // Ensure button is enabled on first arrival or reset
+            generateButton.disabled = false; 
+            
             // Focus on input field
             setTimeout(() => {
                 document.getElementById('periodNumber').focus();
@@ -835,9 +847,10 @@
                     document.getElementById('predictionPage').style.display = 'block';
                     paymentRef.off(); // Stop listening
                     
-                    // Reset for new prediction
+                    // Reset for new prediction and enable button
                     document.getElementById('periodNumber').value = '';
                     document.getElementById('predictionResult').style.display = 'none';
+                    generateButton.disabled = false;
                 }
             });
         }
@@ -878,16 +891,25 @@
             
             // Show result
             document.getElementById('predictionResult').style.display = 'block';
+
+            // **New Update: Disable the generate button after prediction is shown**
+            generateButton.disabled = true;
         }
 
         // 7. Win Action
         function winAction() {
+            // **New Update: Re-enable the generate button**
+            generateButton.disabled = false;
+            
             document.getElementById('predictionPage').style.display = 'none';
             document.getElementById('congratulationsPopup').style.display = 'block';
         }
 
         // 8. Loss Action
         function lossAction() {
+            // **New Update: Re-enable the generate button**
+            generateButton.disabled = false;
+            
             // Reset for new prediction
             document.getElementById('periodNumber').value = '';
             document.getElementById('predictionResult').style.display = 'none';
@@ -1009,11 +1031,15 @@
                             // Already approved, skip to prediction page
                             document.getElementById('videoPage').style.display = 'none';
                             showPredictionPageDirectly();
-                            break;
+                            return; // Stop checking after approval found
                         }
                     }
                 }
+                // If no active approval, keep the video page visible
+                document.getElementById('videoPage').style.display = 'flex'; 
             });
+            // Ensure button is enabled initially
+            generateButton.disabled = false;
         };
     </script>
 </body>
