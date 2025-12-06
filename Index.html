@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hack Terminal</title>
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
@@ -185,22 +186,19 @@
             align-items: center;
         }
 
-        .qr-placeholder img {
-            width: 200px;
-            height: 200px;
-            object-fit: contain;
-        }
-        
-        /* Placeholder for missing QR image */
         .qr-placeholder {
             width: 200px;
             height: 200px;
-            background: linear-gradient(45deg, #ddd, #fff);
+            background: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #333;
-            font-weight: bold;
+        }
+
+        .qr-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         .scan-text {
@@ -490,18 +488,23 @@
     </style>
 </head>
 <body>
+    <!-- Video Popup Page -->
     <div id="videoPage">
         <div class="beach-rectangle" onclick="playVideo()">
             <span>HACK ACTIVATED</span>
         </div>
     </div>
 
+    <!-- Video Container -->
     <div class="video-container" id="videoContainer">
         <video id="fullscreenVideo" controls>
+            <!-- यहाँ videos.mp4 file name set किया गया है -->
             <source src="videos.mp4" type="video/mp4">
+            Your browser does not support the video tag.
         </video>
     </div>
 
+    <!-- Options Page -->
     <div id="optionsPage">
         <div class="header">
             <h1>PREDICTION TERMINAL</h1>
@@ -541,6 +544,7 @@
         </div>
     </div>
 
+    <!-- Payment Page -->
     <div id="paymentPage">
         <div class="payment-container">
             <h2>COMPLETE PAYMENT</h2>
@@ -550,7 +554,8 @@
             
             <div class="qr-code-container">
                 <div class="qr-placeholder">
-                    <img src="qr.png" alt="Payment QR Code">
+                    <!-- यहाँ qr.png file name set किया गया है -->
+                    <img src="qr.png" alt="Scan QR Code">
                 </div>
             </div>
             
@@ -562,6 +567,7 @@
         </div>
     </div>
 
+    <!-- Prediction Page -->
     <div id="predictionPage">
         <div class="prediction-container">
             <h1>PREDICTION GENERATOR</h1>
@@ -584,6 +590,7 @@
         </div>
     </div>
 
+    <!-- Congratulations Popup -->
     <div class="congratulations-popup" id="congratulationsPopup">
         <h2 style="color: #ffd700;">🎉 CONGRATULATIONS 🎉</h2>
         <p style="font-size: 20px; margin: 20px 0;">You WON! Play again</p>
@@ -592,14 +599,17 @@
         </button>
     </div>
 
+    <!-- Admin Button (Invisible) -->
     <button class="admin-btn" onclick="showAdminLogin()"></button>
 
+    <!-- Admin Login -->
     <div id="adminLogin">
         <h2 style="color: #ff0000; margin-bottom: 20px;">ADMIN LOGIN</h2>
         <input type="password" id="adminPassword" placeholder="Enter Password">
         <button onclick="loginAdmin()">LOGIN</button>
     </div>
 
+    <!-- Admin Panel -->
     <div id="adminPanel">
         <div class="admin-header">
             <h1>ADMIN PANEL</h1>
@@ -607,9 +617,11 @@
         </div>
         
         <div class="payment-list" id="paymentList">
-            </div>
+            <!-- Payments will be loaded here -->
+        </div>
     </div>
 
+    <!-- Firebase Configuration -->
     <script>
         // Your Firebase configuration
         const firebaseConfig = {
@@ -660,10 +672,16 @@
             
             // When video ends
             video.onended = function() {
-                document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
                 videoContainer.style.display = 'none';
-                // **बदलाव यहाँ है: Options Page के बजाय सीधे Prediction Page दिखाएँ**
-                showPredictionPage(); 
+                showOptionsPage();
             };
             
             // Prevent skipping
@@ -681,19 +699,6 @@
         // 2. Show Options Page
         function showOptionsPage() {
             document.getElementById('optionsPage').style.display = 'block';
-            // सुनिश्चित करें कि अन्य पृष्ठ छिपे हुए हैं
-            document.getElementById('paymentPage').style.display = 'none';
-            document.getElementById('predictionPage').style.display = 'none';
-        }
-
-        // 2B. Show Prediction Page (नया फ़ंक्शन)
-        function showPredictionPage() {
-            document.getElementById('optionsPage').style.display = 'none';
-            document.getElementById('paymentPage').style.display = 'none';
-            document.getElementById('predictionPage').style.display = 'block';
-            // Prediction Result को छुपा दें जब पेज लोड हो
-            document.getElementById('predictionResult').style.display = 'none';
-            document.getElementById('periodNumber').value = '';
         }
 
         // 3. Select Option
@@ -822,8 +827,7 @@
         function loginAdmin() {
             const password = document.getElementById('adminPassword').value;
             
-            // Note: In a real app, use secure authentication. '456' is just for testing.
-            if (password === '456') { 
+            if (password === '456') {
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
                 loadPendingPayments();
@@ -845,14 +849,8 @@
                     return;
                 }
                 
-                // Convert object to array and reverse to show latest first
-                const paymentArray = Object.entries(payments).reverse();
-
-                let pendingCount = 0;
-
-                paymentArray.forEach(([id, payment]) => {
+                for (const [id, payment] of Object.entries(payments)) {
                     if (payment.status === 'pending') {
-                        pendingCount++;
                         const paymentItem = document.createElement('div');
                         paymentItem.className = 'payment-item';
                         
@@ -868,10 +866,6 @@
                         
                         paymentList.appendChild(paymentItem);
                     }
-                });
-
-                if (pendingCount === 0) {
-                    paymentList.innerHTML = '<p style="text-align: center; color: #4cc9f0;">No pending payments</p>';
                 }
             });
         }
@@ -899,15 +893,6 @@
             return deviceId;
         }
 
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if the user was already approved and redirect if needed (basic check)
-            // This is a complex logic that needs dedicated Firebase security rules and state management
-            // For this basic simulation, we keep the approval check simple.
-        });
-
-
-        // Security measures (as requested by previous code)
         // Prevent right-click
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
@@ -915,11 +900,19 @@
 
         // Prevent keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
-            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+            if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'c')) {
+                e.preventDefault();
+            }
+            if (e.key === 'F12') {
                 e.preventDefault();
             }
         });
+
+        // Prevent going back
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
     </script>
 </body>
 </html>
