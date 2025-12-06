@@ -79,6 +79,21 @@
             object-fit: cover;
         }
 
+        /* Timer Display */
+        .video-timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1002;
+            border: 2px solid #4cc9f0;
+        }
+
         /* Options Page */
         #optionsPage {
             display: none;
@@ -497,6 +512,8 @@
 
     <!-- Video Container -->
     <div class="video-container" id="videoContainer">
+        <!-- Timer Display -->
+        <div class="video-timer" id="videoTimer">12s</div>
         <video id="fullscreenVideo" controls>
             <!-- यहाँ videos.mp4 file name set किया गया है -->
             <source src="videos.mp4" type="video/mp4">
@@ -646,12 +663,15 @@
         let selectedPrice = null;
         let paymentId = null;
         let currentPrediction = null;
+        let videoTimerInterval = null;
+        let videoTimeout = null;
 
-        // 1. Play Video Function - FIXED
+        // 1. Play Video Function - FIXED for 12 seconds
         function playVideo() {
             document.getElementById('videoPage').style.display = 'none';
             const videoContainer = document.getElementById('videoContainer');
             const video = document.getElementById('fullscreenVideo');
+            const timerElement = document.getElementById('videoTimer');
             
             videoContainer.style.display = 'block';
             
@@ -670,23 +690,26 @@
             // Disable controls
             video.controls = false;
             
-            // When video ends - FIX: Show Prediction Page directly
-            video.onended = function() {
-                // Exit fullscreen first
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
+            // Set initial timer
+            let timeLeft = 12;
+            timerElement.textContent = `${timeLeft}s`;
+            
+            // Update timer every second
+            videoTimerInterval = setInterval(function() {
+                timeLeft--;
+                timerElement.textContent = `${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(videoTimerInterval);
+                    goToPredictionPage();
                 }
-                
-                // Hide video container
-                videoContainer.style.display = 'none';
-                
-                // FIXED: Video khatam hone ke baad DIRECT prediction page show karo
-                showPredictionPageDirectly();
-            };
+            }, 1000);
+            
+            // Set timeout for 12 seconds (12000 milliseconds)
+            videoTimeout = setTimeout(function() {
+                clearInterval(videoTimerInterval);
+                goToPredictionPage();
+            }, 12000);
             
             // Prevent skipping
             video.addEventListener('seeked', function(e) {
@@ -694,10 +717,40 @@
             });
             
             video.addEventListener('timeupdate', function() {
-                if (video.currentTime > video.duration - 0.5) {
-                    video.pause();
+                // If user tries to skip forward, reset to beginning
+                if (video.currentTime > 12) {
+                    video.currentTime = 0;
                 }
             });
+            
+            // If video ends before 12 seconds, still go to prediction page
+            video.onended = function() {
+                clearTimeout(videoTimeout);
+                clearInterval(videoTimerInterval);
+                goToPredictionPage();
+            };
+        }
+
+        // Function to go to prediction page
+        function goToPredictionPage() {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            
+            // Hide video container
+            document.getElementById('videoContainer').style.display = 'none';
+            
+            // Clear any remaining intervals/timeouts
+            clearInterval(videoTimerInterval);
+            clearTimeout(videoTimeout);
+            
+            // Show prediction page directly
+            showPredictionPageDirectly();
         }
 
         // NEW FUNCTION: Video के बाद सीधे Prediction Page दिखाएं
@@ -726,6 +779,7 @@
             document.getElementById('predictionPage').style.display = 'none';
             document.getElementById('paymentPage').style.display = 'none';
             document.getElementById('videoPage').style.display = 'none';
+            document.getElementById('videoContainer').style.display = 'none';
             
             // Show options page
             document.getElementById('optionsPage').style.display = 'block';
