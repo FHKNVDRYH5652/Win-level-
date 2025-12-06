@@ -1,0 +1,912 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hack Terminal</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Video Popup Page */
+        #videoPage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .beach-rectangle {
+            width: 300px;
+            height: 100px;
+            background-color: #ff0000;
+            border: 3px solid #ff6b6b;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+            animation: pulse 2s infinite;
+            transition: transform 0.3s;
+        }
+
+        .beach-rectangle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.9);
+        }
+
+        .beach-rectangle span {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 1001;
+            display: none;
+        }
+
+        #fullscreenVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Options Page */
+        #optionsPage {
+            display: none;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .guarantee-text {
+            background: linear-gradient(45deg, #ff0000, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            border: 3px solid #ff0000;
+            border-radius: 10px;
+            display: inline-block;
+            animation: glow 2s infinite;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .option-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #4cc9f0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .option-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(76, 201, 240, 0.4);
+            border-color: #ffd700;
+        }
+
+        .option-card h2 {
+            font-size: 24px;
+            color: #4cc9f0;
+            margin-bottom: 10px;
+        }
+
+        .option-card .price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 15px 0;
+        }
+
+        .option-card .level {
+            color: #ff6b6b;
+            font-size: 18px;
+        }
+
+        /* Payment Page */
+        #paymentPage {
+            display: none;
+            padding: 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            min-height: 100vh;
+        }
+
+        .payment-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .qr-code-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px auto;
+            width: 250px;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qr-placeholder img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+        }
+        
+        /* Placeholder for missing QR image */
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(45deg, #ddd, #fff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .scan-text {
+            color: #4cc9f0;
+            font-size: 18px;
+            margin: 15px 0;
+        }
+
+        .amount-display {
+            font-size: 28px;
+            color: #ffd700;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        #utrInput {
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0;
+            border: 2px solid #4cc9f0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        #submitUtr {
+            background: linear-gradient(45deg, #4cc9f0, #4361ee);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #submitUtr:hover {
+            transform: scale(1.05);
+            background: linear-gradient(45deg, #4361ee, #4cc9f0);
+        }
+
+        /* Prediction Page */
+        #predictionPage {
+            display: none;
+            padding: 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            min-height: 100vh;
+        }
+
+        .prediction-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .digit-input {
+            margin: 30px 0;
+        }
+
+        #periodNumber {
+            width: 200px;
+            padding: 15px;
+            font-size: 24px;
+            text-align: center;
+            border: 3px solid #4cc9f0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin: 0 10px;
+        }
+
+        #generatePrediction {
+            background: linear-gradient(45deg, #ff6b6b, #ff0000);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 20px;
+        }
+
+        .prediction-result {
+            margin: 40px 0;
+            min-height: 200px;
+            display: none;
+        }
+
+        .result-box {
+            font-size: 48px;
+            font-weight: bold;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px auto;
+            width: 300px;
+            text-transform: uppercase;
+            animation: resultAppear 0.5s ease-out;
+        }
+
+        .red-result { background: linear-gradient(45deg, #ff0000, #ff6b6b); }
+        .green-result { background: linear-gradient(45deg, #00ff00, #00b894); }
+        .big-result { 
+            background: linear-gradient(45deg, #ff7b00, #ffa500);
+            color: #000;
+        }
+        .small-result { 
+            background: linear-gradient(45deg, #4cc9f0, #4361ee);
+            color: #000;
+        }
+
+        .result-buttons {
+            margin: 30px 0;
+        }
+
+        .win-btn, .loss-btn {
+            padding: 20px 50px;
+            font-size: 24px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.3s;
+            font-weight: bold;
+        }
+
+        .win-btn {
+            background: linear-gradient(45deg, #00ff00, #00b894);
+            color: white;
+        }
+
+        .loss-btn {
+            background: linear-gradient(45deg, #ff0000, #ff6b6b);
+            color: white;
+        }
+
+        .win-btn:hover, .loss-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .congratulations-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f3460);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            display: none;
+            z-index: 1002;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Admin Panel */
+        .admin-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 1003;
+            opacity: 0.3;
+        }
+
+        .admin-btn:hover {
+            opacity: 1;
+        }
+
+        #adminLogin {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f3460);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ff0000;
+            display: none;
+            z-index: 1004;
+        }
+
+        #adminLogin input {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #4cc9f0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        #adminLogin button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff0000, #ff6b6b);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #adminPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            padding: 20px;
+            display: none;
+            z-index: 1005;
+            overflow-y: auto;
+        }
+
+        .admin-header {
+            color: #ff0000;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .payment-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .payment-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 5px solid #4cc9f0;
+        }
+
+        .approve-btn {
+            background: linear-gradient(45deg, #00ff00, #00b894);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
+            50% { box-shadow: 0 0 50px rgba(255, 0, 0, 1); }
+            100% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(255, 0, 0, 1); }
+            100% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+        }
+
+        @keyframes resultAppear {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .option-card {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .guarantee-text {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="videoPage">
+        <div class="beach-rectangle" onclick="playVideo()">
+            <span>HACK ACTIVATED</span>
+        </div>
+    </div>
+
+    <div class="video-container" id="videoContainer">
+        <video id="fullscreenVideo" controls>
+            <source src="videos.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div id="optionsPage">
+        <div class="header">
+            <h1>PREDICTION TERMINAL</h1>
+            <div class="guarantee-text">100% LEVEL WIN</div>
+        </div>
+        
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption(1, 99)">
+                <h2>UNDER 1 LEVEL WIN</h2>
+                <div class="price">₹99</div>
+                <div class="level">Level 1</div>
+            </div>
+            
+            <div class="option-card" onclick="selectOption(2, 49)">
+                <h2>UNDER 2 LEVEL WIN</h2>
+                <div class="price">₹49</div>
+                <div class="level">Level 2</div>
+            </div>
+            
+            <div class="option-card" onclick="selectOption(3, 25)">
+                <h2>UNDER 3 LEVEL WIN</h2>
+                <div class="price">₹25</div>
+                <div class="level">Level 3</div>
+            </div>
+            
+            <div class="option-card" onclick="selectOption(4, 19)">
+                <h2>UNDER 4 LEVEL WIN</h2>
+                <div class="price">₹19</div>
+                <div class="level">Level 4</div>
+            </div>
+            
+            <div class="option-card" onclick="selectOption(5, 9)">
+                <h2>UNDER 5 LEVEL WIN</h2>
+                <div class="price">₹9</div>
+                <div class="level">Level 5</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="paymentPage">
+        <div class="payment-container">
+            <h2>COMPLETE PAYMENT</h2>
+            <div class="amount-display" id="selectedAmount">₹99</div>
+            
+            <div class="scan-text">SCAN AND PAY</div>
+            
+            <div class="qr-code-container">
+                <div class="qr-placeholder">
+                    <img src="qr.png" alt="Payment QR Code">
+                </div>
+            </div>
+            
+            <div class="scan-text">After payment, enter UTR below</div>
+            
+            <input type="text" id="utrInput" placeholder="Enter UTR Number" maxlength="12">
+            
+            <button id="submitUtr" onclick="submitPayment()">SUBMIT UTR</button>
+        </div>
+    </div>
+
+    <div id="predictionPage">
+        <div class="prediction-container">
+            <h1>PREDICTION GENERATOR</h1>
+            
+            <div class="digit-input">
+                <label for="periodNumber">Enter last 3 digit period number:</label><br>
+                <input type="text" id="periodNumber" maxlength="3" placeholder="000">
+            </div>
+            
+            <button id="generatePrediction" onclick="generatePrediction()">GENERATE PREDICTION</button>
+            
+            <div class="prediction-result" id="predictionResult">
+                <div class="result-box" id="resultBox"></div>
+                
+                <div class="result-buttons">
+                    <button class="win-btn" onclick="winAction()">WIN</button>
+                    <button class="loss-btn" onclick="lossAction()">LOSS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="congratulations-popup" id="congratulationsPopup">
+        <h2 style="color: #ffd700;">🎉 CONGRATULATIONS 🎉</h2>
+        <p style="font-size: 20px; margin: 20px 0;">You WON! Play again</p>
+        <button onclick="closeCongratulations()" style="background: linear-gradient(45deg, #4cc9f0, #4361ee); color: white; border: none; padding: 10px 30px; border-radius: 10px; cursor: pointer;">
+            BUY AGAIN
+        </button>
+    </div>
+
+    <button class="admin-btn" onclick="showAdminLogin()"></button>
+
+    <div id="adminLogin">
+        <h2 style="color: #ff0000; margin-bottom: 20px;">ADMIN LOGIN</h2>
+        <input type="password" id="adminPassword" placeholder="Enter Password">
+        <button onclick="loginAdmin()">LOGIN</button>
+    </div>
+
+    <div id="adminPanel">
+        <div class="admin-header">
+            <h1>ADMIN PANEL</h1>
+            <h3>Pending Approvals</h3>
+        </div>
+        
+        <div class="payment-list" id="paymentList">
+            </div>
+    </div>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBs7eQyMrcN8kJWMHl2ac2UZHlYQ6DypD8",
+            authDomain: "terminal-xxrr.firebaseapp.com",
+            databaseURL: "https://terminal-xxrr-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "terminal-xxrr",
+            storageBucket: "terminal-xxrr.firebasestorage.app",
+            messagingSenderId: "722753278120",
+            appId: "1:722753278120:web:bfa37aab39635a4e57f29d",
+            measurementId: "G-E3MZH3E1K5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+
+    <script>
+        // Global variables
+        let selectedOption = null;
+        let selectedPrice = null;
+        let paymentId = null;
+        let currentPrediction = null;
+
+        // 1. Play Video Function
+        function playVideo() {
+            document.getElementById('videoPage').style.display = 'none';
+            const videoContainer = document.getElementById('videoContainer');
+            const video = document.getElementById('fullscreenVideo');
+            
+            videoContainer.style.display = 'block';
+            
+            // Enter fullscreen
+            if (videoContainer.requestFullscreen) {
+                videoContainer.requestFullscreen();
+            } else if (videoContainer.webkitRequestFullscreen) {
+                videoContainer.webkitRequestFullscreen();
+            } else if (videoContainer.msRequestFullscreen) {
+                videoContainer.msRequestFullscreen();
+            }
+            
+            // Play video
+            video.play();
+            
+            // Disable controls
+            video.controls = false;
+            
+            // When video ends
+            video.onended = function() {
+                document.exitFullscreen();
+                videoContainer.style.display = 'none';
+                showOptionsPage();
+            };
+            
+            // Prevent skipping
+            video.addEventListener('seeked', function(e) {
+                video.currentTime = 0;
+            });
+            
+            video.addEventListener('timeupdate', function() {
+                if (video.currentTime > video.duration - 0.5) {
+                    video.pause();
+                }
+            });
+        }
+
+        // 2. Show Options Page
+        function showOptionsPage() {
+            document.getElementById('optionsPage').style.display = 'block';
+        }
+
+        // 3. Select Option
+        function selectOption(option, price) {
+            selectedOption = option;
+            selectedPrice = price;
+            
+            // Show selected amount
+            document.getElementById('selectedAmount').textContent = `₹${price}`;
+            
+            // Hide options page, show payment page
+            document.getElementById('optionsPage').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'block';
+        }
+
+        // 4. Submit Payment
+        function submitPayment() {
+            const utr = document.getElementById('utrInput').value.trim();
+            
+            if (!utr) {
+                alert('Please enter UTR number');
+                return;
+            }
+            
+            // Generate unique payment ID
+            paymentId = 'PAY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Save to Firebase
+            const paymentData = {
+                option: selectedOption,
+                price: selectedPrice,
+                utr: utr,
+                status: 'pending',
+                timestamp: Date.now(),
+                deviceId: getDeviceId()
+            };
+            
+            database.ref('payments/' + paymentId).set(paymentData)
+                .then(() => {
+                    alert('Payment submitted! Waiting for admin approval...');
+                    checkApprovalStatus();
+                })
+                .catch((error) => {
+                    alert('Error submitting payment: ' + error.message);
+                });
+        }
+
+        // 5. Check Approval Status
+        function checkApprovalStatus() {
+            const paymentRef = database.ref('payments/' + paymentId);
+            
+            paymentRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.status === 'approved') {
+                    // Payment approved, show prediction page
+                    document.getElementById('paymentPage').style.display = 'none';
+                    document.getElementById('predictionPage').style.display = 'block';
+                    paymentRef.off(); // Stop listening
+                }
+            });
+        }
+
+        // 6. Generate Prediction
+        function generatePrediction() {
+            const periodNumber = document.getElementById('periodNumber').value.trim();
+            
+            if (periodNumber.length !== 3) {
+                alert('Please enter exactly 3 digits');
+                return;
+            }
+            
+            // Random prediction
+            const predictions = ['RED', 'GREEN', 'BIG', 'SMALL'];
+            const randomIndex = Math.floor(Math.random() * predictions.length);
+            currentPrediction = predictions[randomIndex];
+            
+            // Display result with appropriate color
+            const resultBox = document.getElementById('resultBox');
+            resultBox.textContent = currentPrediction;
+            
+            // Set color based on prediction
+            switch(currentPrediction) {
+                case 'RED':
+                    resultBox.className = 'result-box red-result';
+                    break;
+                case 'GREEN':
+                    resultBox.className = 'result-box green-result';
+                    break;
+                case 'BIG':
+                    resultBox.className = 'result-box big-result';
+                    break;
+                case 'SMALL':
+                    resultBox.className = 'result-box small-result';
+                    break;
+            }
+            
+            // Show result
+            document.getElementById('predictionResult').style.display = 'block';
+        }
+
+        // 7. Win Action
+        function winAction() {
+            document.getElementById('predictionPage').style.display = 'none';
+            document.getElementById('congratulationsPopup').style.display = 'block';
+        }
+
+        // 8. Loss Action
+        function lossAction() {
+            // Reset for new prediction
+            document.getElementById('periodNumber').value = '';
+            document.getElementById('predictionResult').style.display = 'none';
+            alert('Try again! Generate new prediction');
+        }
+
+        // 9. Close Congratulations
+        function closeCongratulations() {
+            document.getElementById('congratulationsPopup').style.display = 'none';
+            showOptionsPage();
+        }
+
+        // 10. Admin Functions
+        function showAdminLogin() {
+            document.getElementById('adminLogin').style.display = 'block';
+        }
+
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            
+            // Note: In a real app, use secure authentication. '456' is just for testing.
+            if (password === '456') { 
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadPendingPayments();
+            } else {
+                alert('Wrong password!');
+            }
+        }
+
+        function loadPendingPayments() {
+            const paymentsRef = database.ref('payments');
+            
+            paymentsRef.on('value', (snapshot) => {
+                const payments = snapshot.val();
+                const paymentList = document.getElementById('paymentList');
+                paymentList.innerHTML = '';
+                
+                if (!payments) {
+                    paymentList.innerHTML = '<p style="text-align: center; color: #ff6b6b;">No pending payments</p>';
+                    return;
+                }
+                
+                // Convert object to array and reverse to show latest first
+                const paymentArray = Object.entries(payments).reverse();
+
+                let pendingCount = 0;
+
+                paymentArray.forEach(([id, payment]) => {
+                    if (payment.status === 'pending') {
+                        pendingCount++;
+                        const paymentItem = document.createElement('div');
+                        paymentItem.className = 'payment-item';
+                        
+                        paymentItem.innerHTML = `
+                            <p><strong>Payment ID:</strong> ${id}</p>
+                            <p><strong>Option:</strong> Level ${payment.option}</p>
+                            <p><strong>Amount:</strong> ₹${payment.price}</p>
+                            <p><strong>UTR:</strong> ${payment.utr}</p>
+                            <p><strong>Device ID:</strong> ${payment.deviceId || 'N/A'}</p>
+                            <p><strong>Time:</strong> ${new Date(payment.timestamp).toLocaleString()}</p>
+                            <button class="approve-btn" onclick="approvePayment('${id}')">APPROVE</button>
+                        `;
+                        
+                        paymentList.appendChild(paymentItem);
+                    }
+                });
+
+                if (pendingCount === 0) {
+                    paymentList.innerHTML = '<p style="text-align: center; color: #4cc9f0;">No pending payments</p>';
+                }
+            });
+        }
+
+        function approvePayment(id) {
+            database.ref('payments/' + id).update({
+                status: 'approved',
+                approvedAt: Date.now()
+            })
+            .then(() => {
+                alert('Payment approved!');
+            })
+            .catch((error) => {
+                alert('Error approving payment: ' + error.message);
+            });
+        }
+
+        // Helper function to generate device ID
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'DEV_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if the user was already approved and redirect if needed (basic check)
+            // This is a complex logic that needs dedicated Firebase security rules and state management
+            // For this basic simulation, we keep the approval check simple.
+        });
+
+
+        // Security measures (as requested by previous code)
+        // Prevent right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Prevent keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+U, etc.
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
