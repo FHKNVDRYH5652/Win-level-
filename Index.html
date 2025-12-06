@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hack Terminal</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
@@ -79,7 +78,7 @@
             object-fit: cover;
         }
 
-        /* Timer Display */
+        /* Timer Display (HIDDEN) */
         .video-timer {
             position: absolute;
             top: 20px;
@@ -92,6 +91,8 @@
             font-weight: bold;
             z-index: 1002;
             border: 2px solid #4cc9f0;
+            /* Hiding the timer as requested */
+            display: none; 
         }
 
         /* Options Page */
@@ -503,25 +504,20 @@
     </style>
 </head>
 <body>
-    <!-- Video Popup Page -->
     <div id="videoPage">
         <div class="beach-rectangle" onclick="playVideo()">
             <span>HACK ACTIVATED</span>
         </div>
     </div>
 
-    <!-- Video Container -->
     <div class="video-container" id="videoContainer">
-        <!-- Timer Display -->
         <div class="video-timer" id="videoTimer">12s</div>
         <video id="fullscreenVideo" controls>
-            <!-- यहाँ videos.mp4 file name set किया गया है -->
             <source src="videos.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
     </div>
 
-    <!-- Options Page -->
     <div id="optionsPage">
         <div class="header">
             <h1>PREDICTION TERMINAL</h1>
@@ -561,7 +557,6 @@
         </div>
     </div>
 
-    <!-- Payment Page -->
     <div id="paymentPage">
         <div class="payment-container">
             <h2>COMPLETE PAYMENT</h2>
@@ -571,7 +566,6 @@
             
             <div class="qr-code-container">
                 <div class="qr-placeholder">
-                    <!-- यहाँ qr.png file name set किया गया है -->
                     <img src="qr.png" alt="Scan QR Code">
                 </div>
             </div>
@@ -584,7 +578,6 @@
         </div>
     </div>
 
-    <!-- Prediction Page -->
     <div id="predictionPage">
         <div class="prediction-container">
             <h1>PREDICTION GENERATOR</h1>
@@ -607,7 +600,6 @@
         </div>
     </div>
 
-    <!-- Congratulations Popup -->
     <div class="congratulations-popup" id="congratulationsPopup">
         <h2 style="color: #ffd700;">🎉 CONGRATULATIONS 🎉</h2>
         <p style="font-size: 20px; margin: 20px 0;">You WON! Play again</p>
@@ -616,17 +608,14 @@
         </button>
     </div>
 
-    <!-- Admin Button (Invisible) -->
     <button class="admin-btn" onclick="showAdminLogin()"></button>
 
-    <!-- Admin Login -->
     <div id="adminLogin">
         <h2 style="color: #ff0000; margin-bottom: 20px;">ADMIN LOGIN</h2>
         <input type="password" id="adminPassword" placeholder="Enter Password">
         <button onclick="loginAdmin()">LOGIN</button>
     </div>
 
-    <!-- Admin Panel -->
     <div id="adminPanel">
         <div class="admin-header">
             <h1>ADMIN PANEL</h1>
@@ -634,11 +623,9 @@
         </div>
         
         <div class="payment-list" id="paymentList">
-            <!-- Payments will be loaded here -->
-        </div>
+            </div>
     </div>
 
-    <!-- Firebase Configuration -->
     <script>
         // Your Firebase configuration
         const firebaseConfig = {
@@ -690,7 +677,7 @@
             // Disable controls
             video.controls = false;
             
-            // Set initial timer
+            // Set initial timer (internal countdown)
             let timeLeft = 12;
             timerElement.textContent = `${timeLeft}s`;
             
@@ -701,14 +688,14 @@
                 
                 if (timeLeft <= 0) {
                     clearInterval(videoTimerInterval);
-                    goToPredictionPage();
+                    goToOptionsPageAfterVideo(); 
                 }
             }, 1000);
             
             // Set timeout for 12 seconds (12000 milliseconds)
             videoTimeout = setTimeout(function() {
                 clearInterval(videoTimerInterval);
-                goToPredictionPage();
+                goToOptionsPageAfterVideo(); 
             }, 12000);
             
             // Prevent skipping
@@ -723,16 +710,16 @@
                 }
             });
             
-            // If video ends before 12 seconds, still go to prediction page
+            // If video ends before 12 seconds, still go to options page
             video.onended = function() {
                 clearTimeout(videoTimeout);
                 clearInterval(videoTimerInterval);
-                goToPredictionPage();
+                goToOptionsPageAfterVideo(); 
             };
         }
 
-        // Function to go to prediction page
-        function goToPredictionPage() {
+        // Function to go to Options page after video
+        function goToOptionsPageAfterVideo() {
             // Exit fullscreen
             if (document.exitFullscreen) {
                 document.exitFullscreen();
@@ -749,11 +736,23 @@
             clearInterval(videoTimerInterval);
             clearTimeout(videoTimeout);
             
-            // Show prediction page directly
-            showPredictionPageDirectly();
+            // Show options page
+            showOptionsPage();
         }
 
-        // NEW FUNCTION: Video के बाद सीधे Prediction Page दिखाएं
+        // 2. Show Options Page (Used after video and for Buy Again)
+        function showOptionsPage() {
+            // Hide all pages
+            document.getElementById('predictionPage').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'none';
+            document.getElementById('videoPage').style.display = 'none';
+            document.getElementById('videoContainer').style.display = 'none';
+            
+            // Show options page
+            document.getElementById('optionsPage').style.display = 'block';
+        }
+        
+        // Function to show Prediction Page directly (used after approval/onload check)
         function showPredictionPageDirectly() {
             // Directly show the prediction page
             document.getElementById('predictionPage').style.display = 'block';
@@ -773,17 +772,6 @@
             }, 500);
         }
 
-        // 2. Show Options Page (Used for Buy Again)
-        function showOptionsPage() {
-            // Hide all pages
-            document.getElementById('predictionPage').style.display = 'none';
-            document.getElementById('paymentPage').style.display = 'none';
-            document.getElementById('videoPage').style.display = 'none';
-            document.getElementById('videoContainer').style.display = 'none';
-            
-            // Show options page
-            document.getElementById('optionsPage').style.display = 'block';
-        }
 
         // 3. Select Option (Payment plans)
         function selectOption(option, price) {
