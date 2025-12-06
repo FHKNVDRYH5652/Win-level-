@@ -647,7 +647,7 @@
         let paymentId = null;
         let currentPrediction = null;
 
-        // 1. Play Video Function
+        // 1. Play Video Function - FIXED
         function playVideo() {
             document.getElementById('videoPage').style.display = 'none';
             const videoContainer = document.getElementById('videoContainer');
@@ -670,8 +670,9 @@
             // Disable controls
             video.controls = false;
             
-            // When video ends
+            // When video ends - FIX: Show Prediction Page directly
             video.onended = function() {
+                // Exit fullscreen first
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 } else if (document.webkitExitFullscreen) {
@@ -680,8 +681,11 @@
                     document.msExitFullscreen();
                 }
                 
+                // Hide video container
                 videoContainer.style.display = 'none';
-                showOptionsPage();
+                
+                // FIXED: Video khatam hone ke baad DIRECT prediction page show karo
+                showPredictionPageDirectly();
             };
             
             // Prevent skipping
@@ -696,12 +700,38 @@
             });
         }
 
-        // 2. Show Options Page
+        // NEW FUNCTION: Video के बाद सीधे Prediction Page दिखाएं
+        function showPredictionPageDirectly() {
+            // Directly show the prediction page
+            document.getElementById('predictionPage').style.display = 'block';
+            
+            // Hide all other pages
+            document.getElementById('optionsPage').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'none';
+            document.getElementById('videoPage').style.display = 'none';
+            
+            // Reset prediction fields
+            document.getElementById('periodNumber').value = '';
+            document.getElementById('predictionResult').style.display = 'none';
+            
+            // Focus on input field
+            setTimeout(() => {
+                document.getElementById('periodNumber').focus();
+            }, 500);
+        }
+
+        // 2. Show Options Page (Used for Buy Again)
         function showOptionsPage() {
+            // Hide all pages
+            document.getElementById('predictionPage').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'none';
+            document.getElementById('videoPage').style.display = 'none';
+            
+            // Show options page
             document.getElementById('optionsPage').style.display = 'block';
         }
 
-        // 3. Select Option
+        // 3. Select Option (Payment plans)
         function selectOption(option, price) {
             selectedOption = option;
             selectedPrice = price;
@@ -712,6 +742,11 @@
             // Hide options page, show payment page
             document.getElementById('optionsPage').style.display = 'none';
             document.getElementById('paymentPage').style.display = 'block';
+            
+            // Focus on UTR input
+            setTimeout(() => {
+                document.getElementById('utrInput').focus();
+            }, 500);
         }
 
         // 4. Submit Payment
@@ -757,6 +792,10 @@
                     document.getElementById('paymentPage').style.display = 'none';
                     document.getElementById('predictionPage').style.display = 'block';
                     paymentRef.off(); // Stop listening
+                    
+                    // Reset for new prediction
+                    document.getElementById('periodNumber').value = '';
+                    document.getElementById('predictionResult').style.display = 'none';
                 }
             });
         }
@@ -912,6 +951,27 @@
         history.pushState(null, null, location.href);
         window.onpopstate = function () {
             history.go(1);
+        };
+
+        // Auto-check if already approved on page load
+        window.onload = function() {
+            // Check if there's a pending approval for this device
+            const deviceId = getDeviceId();
+            const paymentsRef = database.ref('payments');
+            
+            paymentsRef.once('value', (snapshot) => {
+                const payments = snapshot.val();
+                if (payments) {
+                    for (const [id, payment] of Object.entries(payments)) {
+                        if (payment.deviceId === deviceId && payment.status === 'approved') {
+                            // Already approved, skip to prediction page
+                            document.getElementById('videoPage').style.display = 'none';
+                            showPredictionPageDirectly();
+                            break;
+                        }
+                    }
+                }
+            });
         };
     </script>
 </body>
