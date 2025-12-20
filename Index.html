@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hack Terminal</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -91,7 +89,6 @@
             font-weight: bold;
             z-index: 1002;
             border: 2px solid #4cc9f0;
-            /* Hiding the timer as requested */
             display: none; 
         }
 
@@ -202,18 +199,9 @@
             align-items: center;
         }
 
-        .qr-placeholder {
+        .qr-placeholder img {
             width: 200px;
             height: 200px;
-            background: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .qr-placeholder img {
-            width: 100%;
-            height: 100%;
             object-fit: contain;
         }
 
@@ -252,11 +240,6 @@
             transition: transform 0.3s;
         }
 
-        #submitUtr:hover {
-            transform: scale(1.05);
-            background: linear-gradient(45deg, #4361ee, #4cc9f0);
-        }
-
         /* Prediction Page */
         #predictionPage {
             display: none;
@@ -264,11 +247,6 @@
             text-align: center;
             background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
             min-height: 100vh;
-        }
-
-        .prediction-container {
-            max-width: 600px;
-            margin: 0 auto;
         }
 
         .digit-input {
@@ -284,7 +262,6 @@
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            margin: 0 10px;
         }
 
         #generatePrediction {
@@ -296,14 +273,11 @@
             border-radius: 10px;
             cursor: pointer;
             margin: 20px;
-            /* Disabled styles for visual clarity when disabled */
-            transition: opacity 0.3s;
         }
 
         #generatePrediction:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            pointer-events: none;
         }
 
         .prediction-result {
@@ -320,23 +294,12 @@
             margin: 20px auto;
             width: 300px;
             text-transform: uppercase;
-            animation: resultAppear 0.5s ease-out;
         }
 
         .red-result { background: linear-gradient(45deg, #ff0000, #ff6b6b); }
         .green-result { background: linear-gradient(45deg, #00ff00, #00b894); }
-        .big-result { 
-            background: linear-gradient(45deg, #ff7b00, #ffa500);
-            color: #000;
-        }
-        .small-result { 
-            background: linear-gradient(45deg, #4cc9f0, #4361ee);
-            color: #000;
-        }
-
-        .result-buttons {
-            margin: 30px 0;
-        }
+        .big-result { background: linear-gradient(45deg, #ff7b00, #ffa500); color: black; }
+        .small-result { background: linear-gradient(45deg, #4cc9f0, #4361ee); color: black; }
 
         .win-btn, .loss-btn {
             padding: 20px 50px;
@@ -345,23 +308,12 @@
             border-radius: 15px;
             cursor: pointer;
             margin: 10px;
-            transition: transform 0.3s;
             font-weight: bold;
-        }
-
-        .win-btn {
-            background: linear-gradient(45deg, #00ff00, #00b894);
             color: white;
         }
 
-        .loss-btn {
-            background: linear-gradient(45deg, #ff0000, #ff6b6b);
-            color: white;
-        }
-
-        .win-btn:hover, .loss-btn:hover {
-            transform: scale(1.1);
-        }
+        .win-btn { background: linear-gradient(45deg, #00ff00, #00b894); }
+        .loss-btn { background: linear-gradient(45deg, #ff0000, #ff6b6b); }
 
         .congratulations-popup {
             position: fixed;
@@ -375,10 +327,9 @@
             display: none;
             z-index: 1002;
             text-align: center;
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
         }
 
-        /* Admin Panel */
+        /* Admin Section */
         .admin-btn {
             position: fixed;
             top: 10px;
@@ -389,140 +340,64 @@
             border: none;
             cursor: pointer;
             z-index: 1003;
-            opacity: 0.3;
+            opacity: 0.2;
         }
 
-        .admin-btn:hover {
-            opacity: 1;
-        }
-
-        #adminLogin {
+        #adminLogin, #adminPanel {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f3460);
+            background: #1a1a2e;
             padding: 40px;
             border-radius: 20px;
-            border: 3px solid #ff0000;
+            border: 2px solid red;
             display: none;
-            z-index: 1004;
-        }
-
-        #adminLogin input {
-            width: 100%;
-            padding: 15px;
-            margin: 15px 0;
-            border: 2px solid #4cc9f0;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 16px;
-        }
-
-        #adminLogin button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(45deg, #ff0000, #ff6b6b);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 18px;
+            z-index: 1005;
         }
 
         #adminPanel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0a0a0a;
-            padding: 20px;
-            display: none;
-            z-index: 1005;
+            width: 90%;
+            height: 90%;
             overflow-y: auto;
         }
 
-        .admin-header {
-            color: #ff0000;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .payment-list {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
         .payment-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            background: rgba(255,255,255,0.1);
             margin: 10px 0;
+            padding: 15px;
             border-radius: 10px;
-            border-left: 5px solid #4cc9f0;
+            text-align: left;
         }
 
         .approve-btn {
-            background: linear-gradient(45deg, #00ff00, #00b894);
+            background: green;
             color: white;
+            padding: 10px;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
+            border-radius: 5px;
         }
 
-        /* Animations */
         @keyframes pulse {
             0% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
             50% { box-shadow: 0 0 50px rgba(255, 0, 0, 1); }
             100% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
         }
-
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
-            50% { text-shadow: 0 0 20px rgba(255, 0, 0, 1); }
-            100% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
-        }
-
-        @keyframes resultAppear {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .option-card {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 28px;
-            }
-            
-            .guarantee-text {
-                font-size: 24px;
-            }
-        }
     </style>
 </head>
 <body>
+
     <div id="videoPage">
-        <div class="beach-rectangle" onclick="playVideo()">
+        <div class="beach-rectangle" id="activateBtn">
             <span>HACK ACTIVATED</span>
         </div>
     </div>
 
     <div class="video-container" id="videoContainer">
         <div class="video-timer" id="videoTimer">12s</div>
-        <video id="fullscreenVideo" controls>
+        <video id="fullscreenVideo">
             <source src="videos.mp4" type="video/mp4">
-            Your browser does not support the video tag.
         </video>
     </div>
 
@@ -531,33 +406,28 @@
             <h1>PREDICTION TERMINAL</h1>
             <div class="guarantee-text">100% LEVEL WIN</div>
         </div>
-        
         <div class="options-grid">
-            <div class="option-card" onclick="selectOption(1, 99)">
+            <div class="option-card" data-opt="1" data-price="99">
                 <h2>UNDER 1 LEVEL WIN</h2>
                 <div class="price">₹99</div>
                 <div class="level">Level 1</div>
             </div>
-            
-            <div class="option-card" onclick="selectOption(2, 49)">
+            <div class="option-card" data-opt="2" data-price="49">
                 <h2>UNDER 2 LEVEL WIN</h2>
                 <div class="price">₹49</div>
                 <div class="level">Level 2</div>
             </div>
-            
-            <div class="option-card" onclick="selectOption(3, 25)">
+            <div class="option-card" data-opt="3" data-price="25">
                 <h2>UNDER 3 LEVEL WIN</h2>
                 <div class="price">₹25</div>
                 <div class="level">Level 3</div>
             </div>
-            
-            <div class="option-card" onclick="selectOption(4, 19)">
+            <div class="option-card" data-opt="4" data-price="19">
                 <h2>UNDER 4 LEVEL WIN</h2>
                 <div class="price">₹19</div>
                 <div class="level">Level 4</div>
             </div>
-            
-            <div class="option-card" onclick="selectOption(5, 9)">
+            <div class="option-card" data-opt="5" data-price="9">
                 <h2>UNDER 5 LEVEL WIN</h2>
                 <div class="price">₹9</div>
                 <div class="level">Level 5</div>
@@ -569,40 +439,27 @@
         <div class="payment-container">
             <h2>COMPLETE PAYMENT</h2>
             <div class="amount-display" id="selectedAmount">₹99</div>
-            
-            <div class="scan-text">SCAN AND PAY</div>
-            
             <div class="qr-code-container">
-                <div class="qr-placeholder">
-                    <img src="qr.png" alt="Scan QR Code">
-                </div>
+                <img src="qr.png" alt="Scan QR" style="width:200px">
             </div>
-            
             <div class="scan-text">After payment, enter UTR below</div>
-            
             <input type="text" id="utrInput" placeholder="Enter UTR Number" maxlength="12">
-            
-            <button id="submitUtr" onclick="submitPayment()">SUBMIT UTR</button>
+            <button id="submitUtr">SUBMIT UTR</button>
         </div>
     </div>
 
     <div id="predictionPage">
         <div class="prediction-container">
             <h1>PREDICTION GENERATOR</h1>
-            
             <div class="digit-input">
-                <label for="periodNumber">Enter last 3 digit period number:</label><br>
                 <input type="text" id="periodNumber" maxlength="3" placeholder="000">
             </div>
-            
-            <button id="generatePrediction" onclick="generatePrediction()">GENERATE PREDICTION</button>
-            
+            <button id="generatePrediction">GENERATE PREDICTION</button>
             <div class="prediction-result" id="predictionResult">
                 <div class="result-box" id="resultBox"></div>
-                
                 <div class="result-buttons">
-                    <button class="win-btn" onclick="winAction()">WIN</button>
-                    <button class="loss-btn" onclick="lossAction()">LOSS</button>
+                    <button class="win-btn" id="winBtn">WIN</button>
+                    <button class="loss-btn" id="lossBtn">LOSS</button>
                 </div>
             </div>
         </div>
@@ -610,437 +467,201 @@
 
     <div class="congratulations-popup" id="congratulationsPopup">
         <h2 style="color: #ffd700;">🎉 CONGRATULATIONS 🎉</h2>
-        <p style="font-size: 20px; margin: 20px 0;">You WON! Play again</p>
-        <button onclick="closeCongratulations()" style="background: linear-gradient(45deg, #4cc9f0, #4361ee); color: white; border: none; padding: 10px 30px; border-radius: 10px; cursor: pointer;">
-            BUY AGAIN
-        </button>
+        <p>You WON! Play again</p>
+        <button id="buyAgainBtn" style="padding:10px 20px; margin-top:10px; cursor:pointer;">BUY AGAIN</button>
     </div>
 
-    <button class="admin-btn" onclick="showAdminLogin()"></button>
-
+    <button class="admin-btn" id="adminTrigger"></button>
     <div id="adminLogin">
-        <h2 style="color: #ff0000; margin-bottom: 20px;">ADMIN LOGIN</h2>
-        <input type="password" id="adminPassword" placeholder="Enter Password">
-        <button onclick="loginAdmin()">LOGIN</button>
+        <h2>ADMIN LOGIN</h2>
+        <input type="password" id="adminPass" placeholder="Password">
+        <button id="loginBtn">LOGIN</button>
     </div>
 
     <div id="adminPanel">
-        <div class="admin-header">
-            <h1>ADMIN PANEL</h1>
-            <h3>Pending Approvals</h3>
-        </div>
-        
-        <div class="payment-list" id="paymentList">
-            </div>
+        <h1 style="color:red">PENDING PAYMENTS</h1>
+        <div id="paymentList"></div>
+        <button onclick="document.getElementById('adminPanel').style.display='none'" style="margin-top:20px">CLOSE</button>
     </div>
 
-    <script>
-        // Your Firebase configuration
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, push, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyBs7eQyMrcN8kJWMHl2ac2UZHlYQ6DypD8",
-            authDomain: "terminal-xxrr.firebaseapp.com",
-            databaseURL: "https://terminal-xxrr-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "terminal-xxrr",
-            storageBucket: "terminal-xxrr.firebasestorage.app",
-            messagingSenderId: "722753278120",
-            appId: "1:722753278120:web:bfa37aab39635a4e57f29d",
-            measurementId: "G-E3MZH3E1K5"
+            apiKey: "AIzaSyBHLb-g-WUe8AuiVRIOVolh1MTXF1u7dOc",
+            authDomain: "colour-games-dfe2d.firebaseapp.com",
+            databaseURL: "https://colour-games-dfe2d-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "colour-games-dfe2d",
+            storageBucket: "colour-games-dfe2d.firebasestorage.app",
+            messagingSenderId: "92918980466",
+            appId: "1:92918980466:web:137e6bc678c0fa76ff07eb",
+            measurementId: "G-D7C15NMDJD"
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const generateButton = document.getElementById('generatePrediction');
-    </script>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    <script>
-        // Global variables
-        let selectedOption = null;
-        let selectedPrice = null;
-        let paymentId = null;
-        let currentPrediction = null;
-        let videoTimerInterval = null;
-        let videoTimeout = null;
+        // Variables
+        let selOpt = null, selPrice = null, currentPayId = null;
+        const deviceId = getDeviceId();
 
-        // 1. Play Video Function - FIXED for 12 seconds
-        function playVideo() {
-            document.getElementById('videoPage').style.display = 'none';
-            const videoContainer = document.getElementById('videoContainer');
+        // 1. Initial Load Check
+        window.onload = async () => {
+            const snapshot = await get(ref(db, 'payments'));
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                for (let id in data) {
+                    if (data[id].deviceId === deviceId && data[id].status === 'approved') {
+                        showPage('predictionPage');
+                        return;
+                    }
+                }
+            }
+            showPage('videoPage');
+        };
+
+        // 2. Video Logic
+        document.getElementById('activateBtn').onclick = () => {
+            showPage('videoContainer');
             const video = document.getElementById('fullscreenVideo');
-            const timerElement = document.getElementById('videoTimer');
-            
-            videoContainer.style.display = 'block';
-            
-            // Enter fullscreen
-            if (videoContainer.requestFullscreen) {
-                videoContainer.requestFullscreen();
-            } else if (videoContainer.webkitRequestFullscreen) {
-                videoContainer.webkitRequestFullscreen();
-            } else if (videoContainer.msRequestFullscreen) {
-                videoContainer.msRequestFullscreen();
-            }
-            
-            // Play video
             video.play();
-            
-            // Disable controls
-            video.controls = false;
-            
-            // Set initial timer (internal countdown)
-            let timeLeft = 12;
-            timerElement.textContent = `${timeLeft}s`;
-            
-            // Update timer every second
-            videoTimerInterval = setInterval(function() {
-                timeLeft--;
-                timerElement.textContent = `${timeLeft}s`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(videoTimerInterval);
-                    goToOptionsPageAfterVideo(); 
-                }
-            }, 1000);
-            
-            // Set timeout for 12 seconds (12000 milliseconds)
-            videoTimeout = setTimeout(function() {
-                clearInterval(videoTimerInterval);
-                goToOptionsPageAfterVideo(); 
+            setTimeout(() => {
+                video.pause();
+                showPage('optionsPage');
             }, 12000);
-            
-            // Prevent skipping
-            video.addEventListener('seeked', function(e) {
-                video.currentTime = 0;
+        };
+
+        // 3. Navigation
+        function showPage(pageId) {
+            ['videoPage', 'videoContainer', 'optionsPage', 'paymentPage', 'predictionPage'].forEach(id => {
+                document.getElementById(id).style.display = (id === pageId) ? 'block' : 'none';
             });
-            
-            video.addEventListener('timeupdate', function() {
-                // If user tries to skip forward, reset to beginning
-                if (video.currentTime > 12) {
-                    video.currentTime = 0;
-                }
-            });
-            
-            // If video ends before 12 seconds, still go to options page
-            video.onended = function() {
-                clearTimeout(videoTimeout);
-                clearInterval(videoTimerInterval);
-                goToOptionsPageAfterVideo(); 
+            if(pageId === 'videoPage') document.getElementById(pageId).style.display = 'flex';
+        }
+
+        // 4. Selection
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.onclick = () => {
+                selOpt = card.dataset.opt;
+                selPrice = card.dataset.price;
+                document.getElementById('selectedAmount').innerText = '₹' + selPrice;
+                showPage('paymentPage');
             };
-        }
+        });
 
-        // Function to go to Options page after video
-        function goToOptionsPageAfterVideo() {
-            // Exit fullscreen
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-            
-            // Hide video container
-            document.getElementById('videoContainer').style.display = 'none';
-            
-            // Clear any remaining intervals/timeouts
-            clearInterval(videoTimerInterval);
-            clearTimeout(videoTimeout);
-            
-            // Show options page
-            showOptionsPage();
-        }
-
-        // 2. Show Options Page (Used after video and for Buy Again)
-        function showOptionsPage() {
-            // Hide all pages
-            document.getElementById('predictionPage').style.display = 'none';
-            document.getElementById('paymentPage').style.display = 'none';
-            document.getElementById('videoPage').style.display = 'none';
-            document.getElementById('videoContainer').style.display = 'none';
-            
-            // Show options page
-            document.getElementById('optionsPage').style.display = 'block';
-        }
-        
-        // Function to show Prediction Page directly (used after approval/onload check)
-        function showPredictionPageDirectly() {
-            // Directly show the prediction page
-            document.getElementById('predictionPage').style.display = 'block';
-            
-            // Hide all other pages
-            document.getElementById('optionsPage').style.display = 'none';
-            document.getElementById('paymentPage').style.display = 'none';
-            document.getElementById('videoPage').style.display = 'none';
-            
-            // Reset prediction fields
-            document.getElementById('periodNumber').value = '';
-            document.getElementById('predictionResult').style.display = 'none';
-            
-            // Ensure button is enabled on first arrival or reset
-            generateButton.disabled = false; 
-            
-            // Focus on input field
-            setTimeout(() => {
-                document.getElementById('periodNumber').focus();
-            }, 500);
-        }
-
-
-        // 3. Select Option (Payment plans)
-        function selectOption(option, price) {
-            selectedOption = option;
-            selectedPrice = price;
-            
-            // Show selected amount
-            document.getElementById('selectedAmount').textContent = `₹${price}`;
-            
-            // Hide options page, show payment page
-            document.getElementById('optionsPage').style.display = 'none';
-            document.getElementById('paymentPage').style.display = 'block';
-            
-            // Focus on UTR input
-            setTimeout(() => {
-                document.getElementById('utrInput').focus();
-            }, 500);
-        }
-
-        // 4. Submit Payment
-        function submitPayment() {
+        // 5. Payment Submission
+        document.getElementById('submitUtr').onclick = () => {
             const utr = document.getElementById('utrInput').value.trim();
-            
-            if (!utr) {
-                alert('Please enter UTR number');
-                return;
-            }
-            
-            // Generate unique payment ID
-            paymentId = 'PAY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            // Save to Firebase
-            const paymentData = {
-                option: selectedOption,
-                price: selectedPrice,
+            if (utr.length < 10) return alert('Enter valid UTR');
+
+            const newPayRef = push(ref(db, 'payments'));
+            currentPayId = newPayRef.key;
+
+            set(newPayRef, {
+                option: selOpt,
+                price: selPrice,
                 utr: utr,
                 status: 'pending',
-                timestamp: Date.now(),
-                deviceId: getDeviceId()
-            };
-            
-            database.ref('payments/' + paymentId).set(paymentData)
-                .then(() => {
-                    alert('Payment submitted! Waiting for admin approval...');
-                    checkApprovalStatus();
-                })
-                .catch((error) => {
-                    alert('Error submitting payment: ' + error.message);
-                });
-        }
+                deviceId: deviceId,
+                timestamp: Date.now()
+            });
 
-        // 5. Check Approval Status
-        function checkApprovalStatus() {
-            const paymentRef = database.ref('payments/' + paymentId);
+            alert('Wait for Admin Approval...');
             
-            paymentRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.status === 'approved') {
-                    // Payment approved, show prediction page
-                    document.getElementById('paymentPage').style.display = 'none';
-                    document.getElementById('predictionPage').style.display = 'block';
-                    paymentRef.off(); // Stop listening
-                    
-                    // Reset for new prediction and enable button
-                    document.getElementById('periodNumber').value = '';
-                    document.getElementById('predictionResult').style.display = 'none';
-                    generateButton.disabled = false;
+            // Listen for approval
+            onValue(ref(db, `payments/${currentPayId}`), (snapshot) => {
+                if (snapshot.val()?.status === 'approved') {
+                    showPage('predictionPage');
                 }
             });
-        }
+        };
 
-        // 6. Generate Prediction
-        function generatePrediction() {
-            const periodNumber = document.getElementById('periodNumber').value.trim();
+        // 6. Prediction Logic
+        document.getElementById('generatePrediction').onclick = () => {
+            const period = document.getElementById('periodNumber').value;
+            if (period.length !== 3) return alert('Enter 3 digits');
+
+            const res = ['RED', 'GREEN', 'BIG', 'SMALL'][Math.floor(Math.random() * 4)];
+            const box = document.getElementById('resultBox');
+            box.innerText = res;
+            box.className = `result-box ${res.toLowerCase()}-result`;
             
-            if (periodNumber.length !== 3) {
-                alert('Please enter exactly 3 digits');
-                return;
-            }
-            
-            // Random prediction
-            const predictions = ['RED', 'GREEN', 'BIG', 'SMALL'];
-            const randomIndex = Math.floor(Math.random() * predictions.length);
-            currentPrediction = predictions[randomIndex];
-            
-            // Display result with appropriate color
-            const resultBox = document.getElementById('resultBox');
-            resultBox.textContent = currentPrediction;
-            
-            // Set color based on prediction
-            switch(currentPrediction) {
-                case 'RED':
-                    resultBox.className = 'result-box red-result';
-                    break;
-                case 'GREEN':
-                    resultBox.className = 'result-box green-result';
-                    break;
-                case 'BIG':
-                    resultBox.className = 'result-box big-result';
-                    break;
-                case 'SMALL':
-                    resultBox.className = 'result-box small-result';
-                    break;
-            }
-            
-            // Show result
             document.getElementById('predictionResult').style.display = 'block';
+            document.getElementById('generatePrediction').disabled = true;
+        };
 
-            // **New Update: Disable the generate button after prediction is shown**
-            generateButton.disabled = true;
-        }
-
-        // 7. Win Action
-        function winAction() {
-            // **New Update: Re-enable the generate button**
-            generateButton.disabled = false;
-            
+        document.getElementById('winBtn').onclick = () => {
             document.getElementById('predictionPage').style.display = 'none';
             document.getElementById('congratulationsPopup').style.display = 'block';
-        }
+        };
 
-        // 8. Loss Action
-        function lossAction() {
-            // **New Update: Re-enable the generate button**
-            generateButton.disabled = false;
-            
-            // Reset for new prediction
-            document.getElementById('periodNumber').value = '';
+        document.getElementById('lossBtn').onclick = () => {
             document.getElementById('predictionResult').style.display = 'none';
-            alert('Try again! Generate new prediction');
-        }
+            document.getElementById('generatePrediction').disabled = false;
+            alert('Try Next Period');
+        };
 
-        // 9. Close Congratulations
-        function closeCongratulations() {
+        document.getElementById('buyAgainBtn').onclick = () => {
             document.getElementById('congratulationsPopup').style.display = 'none';
-            showOptionsPage();
-        }
+            showPage('optionsPage');
+        };
 
-        // 10. Admin Functions
-        function showAdminLogin() {
+        // 7. Admin Logic
+        document.getElementById('adminTrigger').onclick = () => {
             document.getElementById('adminLogin').style.display = 'block';
-        }
+        };
 
-        function loginAdmin() {
-            const password = document.getElementById('adminPassword').value;
-            
-            if (password === '456') {
+        document.getElementById('loginBtn').onclick = () => {
+            if (document.getElementById('adminPass').value === '456') {
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
-                loadPendingPayments();
+                loadPayments();
             } else {
-                alert('Wrong password!');
+                alert('Wrong Pass');
             }
-        }
+        };
 
-        function loadPendingPayments() {
-            const paymentsRef = database.ref('payments');
-            
-            paymentsRef.on('value', (snapshot) => {
-                const payments = snapshot.val();
-                const paymentList = document.getElementById('paymentList');
-                paymentList.innerHTML = '';
-                
-                if (!payments) {
-                    paymentList.innerHTML = '<p style="text-align: center; color: #ff6b6b;">No pending payments</p>';
-                    return;
-                }
-                
-                for (const [id, payment] of Object.entries(payments)) {
-                    if (payment.status === 'pending') {
-                        const paymentItem = document.createElement('div');
-                        paymentItem.className = 'payment-item';
-                        
-                        paymentItem.innerHTML = `
-                            <p><strong>Payment ID:</strong> ${id}</p>
-                            <p><strong>Option:</strong> Level ${payment.option}</p>
-                            <p><strong>Amount:</strong> ₹${payment.price}</p>
-                            <p><strong>UTR:</strong> ${payment.utr}</p>
-                            <p><strong>Device ID:</strong> ${payment.deviceId || 'N/A'}</p>
-                            <p><strong>Time:</strong> ${new Date(payment.timestamp).toLocaleString()}</p>
-                            <button class="approve-btn" onclick="approvePayment('${id}')">APPROVE</button>
+        function loadPayments() {
+            onValue(ref(db, 'payments'), (snapshot) => {
+                const list = document.getElementById('paymentList');
+                list.innerHTML = '';
+                const data = snapshot.val();
+                for (let id in data) {
+                    if (data[id].status === 'pending') {
+                        const div = document.createElement('div');
+                        div.className = 'payment-item';
+                        div.innerHTML = `
+                            <p>UTR: ${data[id].utr} | Amt: ₹${data[id].price}</p>
+                            <button class="approve-btn" data-id="${id}">APPROVE</button>
                         `;
-                        
-                        paymentList.appendChild(paymentItem);
+                        list.appendChild(div);
                     }
                 }
             });
         }
 
-        function approvePayment(id) {
-            database.ref('payments/' + id).update({
-                status: 'approved',
-                approvedAt: Date.now()
-            })
-            .then(() => {
-                alert('Payment approved!');
-            })
-            .catch((error) => {
-                alert('Error approving payment: ' + error.message);
-            });
-        }
+        // Event delegation for approve buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('approve-btn')) {
+                const id = e.target.dataset.id;
+                update(ref(db, `payments/${id}`), { status: 'approved' });
+                alert('Approved!');
+            }
+        });
 
-        // Helper function to generate device ID
+        // Device ID Helper
         function getDeviceId() {
-            let deviceId = localStorage.getItem('deviceId');
-            if (!deviceId) {
-                deviceId = 'DEV_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('deviceId', deviceId);
+            let id = localStorage.getItem('deviceId');
+            if (!id) {
+                id = 'DEV_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('deviceId', id);
             }
-            return deviceId;
+            return id;
         }
 
-        // Prevent right-click
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
-
-        // Prevent keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'c')) {
-                e.preventDefault();
-            }
-            if (e.key === 'F12') {
-                e.preventDefault();
-            }
-        });
-
-        // Prevent going back
-        history.pushState(null, null, location.href);
-        window.onpopstate = function () {
-            history.go(1);
-        };
-
-        // Auto-check if already approved on page load
-        window.onload = function() {
-            // Check if there's a pending approval for this device
-            const deviceId = getDeviceId();
-            const paymentsRef = database.ref('payments');
-            
-            paymentsRef.once('value', (snapshot) => {
-                const payments = snapshot.val();
-                if (payments) {
-                    for (const [id, payment] of Object.entries(payments)) {
-                        if (payment.deviceId === deviceId && payment.status === 'approved') {
-                            // Already approved, skip to prediction page
-                            document.getElementById('videoPage').style.display = 'none';
-                            showPredictionPageDirectly();
-                            return; // Stop checking after approval found
-                        }
-                    }
-                }
-                // If no active approval, keep the video page visible
-                document.getElementById('videoPage').style.display = 'flex'; 
-            });
-            // Ensure button is enabled initially
-            generateButton.disabled = false;
-        };
+        // Disable security stuff
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
